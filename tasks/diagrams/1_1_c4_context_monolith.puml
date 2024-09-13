@@ -1,6 +1,5 @@
 @startuml
-!define RELATIVE_INCLUDE true
-
+title Context Monolith Diagram
 !include template/C4_Context.puml
 
 Person(user, "Пользователь", "Человек, который может управлять отоплением в доме")
