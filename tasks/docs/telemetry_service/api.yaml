@@ -1,0 +1,29 @@
+swagger: "2.0"
+info:
+  title: Telemetry Service API
+  version: 1.0.0
+paths:
+  /{device_id}:
+    get:
+      responses:
+        200:
+          description: Successfully get device data
+          schema:
+            type: array
+            items:
+              $ref: '../common/models.yaml#/components/schemas/TelemetryLog'
+        401:
+          description: Unauthorized
+        404:
+          description: Device not found
+  /{device_id}/status:
+    get:
+      responses:
+        200:
+          description: Successfully get current status device
+          schema:
+            $ref: '../common/models.yaml#/components/schemas/TelemetryLog'
+        401:
+          description: Unauthorized
+        404:
+          description: Device not found

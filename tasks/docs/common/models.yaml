@@ -1,0 +1,59 @@
+# models.yaml
+components:
+  schemas:
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        device_type:
+          $ref: '#/components/types/DeviceType'
+        device_vendor:
+          $ref: '#/components/types/DeviceVendor'
+        serial_number:
+          type: string
+        device_link:
+          type: string
+          format: url
+        module_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+
+    TelemetryLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+          format: uuid
+        data:
+          type: datatime
+        values:
+          type: array
+          items:
+            type: object
+            parameters:
+              name:
+                type: string
+              value:
+                type: string
+
+  types:
+    DeviceType:
+      type: string
+      enum:
+        - temperature_sensor
+        - move_sensor
+    DeviceVendor:
+      type: string
+      enum:
+        - Yandex
+        - Xiaomi

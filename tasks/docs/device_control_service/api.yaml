@@ -1,0 +1,165 @@
+swagger: "2.0"
+info:
+  title: Device Control Service API
+  version: 1.0.0
+paths:
+  /register:
+    post:
+      summary: Register a new device
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              device_type:
+                $ref: '../common/models.yaml#/components/types/DeviceType'
+              device_vendor:
+                $ref: '../common/models.yaml#/components/types/DeviceVendor'
+              serial_number:
+                type: string
+              device_link:
+                type: string
+                format: url
+              module_id:
+                type: string
+                format: uuid
+            required:
+              - title
+              - device_type
+              - device_vendor
+              - serial_number
+              - device_link
+      responses:
+        201:
+          description: Device successfully registered
+        400:
+          description: Bad request due to invalid input data
+        401:
+          description: Unauthorized
+        408:
+          description: Device not responding
+        500:
+          description: Internal server error
+
+  /:
+    get:
+      summary: Get info about all user devices
+      responses:
+        200:
+          description: Successfully getting info
+          schema:
+            type: array
+            items:
+              $ref: '../common/models.yaml#/components/schemas/Device'
+        401:
+          description: Unauthorized
+
+  /{device_id}:
+    get:
+      summary: Get info about device
+      parameters:
+        - in: path
+          name: device_id
+          required: true
+          type: string
+          format: uuid
+      responses:
+        200:
+          description: Successfully getting info
+          schema:
+            $ref: '../common/models.yaml#/components/schemas/Device'
+        401:
+          description: Unauthorized
+        404:
+          description: Device not found
+
+    put:
+      summary: Editing device
+      parameters:
+        - in: path
+          name: device_id
+          required: true
+          type: string
+          format: uuid
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              module_id:
+                type: string
+                format: uuid
+
+      responses:
+        200:
+          description: Successfully change device
+        401:
+          description: Unauthorized
+        404:
+          description: Device not found
+        500:
+          description: Internal server error
+
+    delete:
+      summary: Deleting device from users
+      consumes:
+        - application/json
+      parameters:
+        - in: path
+          name: device_id
+          required: true
+          type: string
+          format: uuid
+      responses:
+        204:
+          description: Successfully deleted device
+        401:
+          description: Unauthorized
+        404:
+          description: Device not found
+
+  /{device_id}/execute:
+    post:
+      summary: Execute command on device
+      consumes:
+        - application/json
+      parameters:
+        - in: path
+          name: device_id
+          required: true
+          type: integer
+        - in: body
+          name: body
+          required: true
+          schema:
+            type: object
+            properties:
+              command:
+                type: string
+              command_args:
+                type: array
+                items:
+                  type: string
+            required:
+              - command
+
+      responses:
+        200:
+          description: Successfully execute command
+        400:
+          description: Wrong command on device
+        401:
+          description: Unauthorized
+        404:
+          description: Device not found
+        500:
+          description: Internal Server Error
