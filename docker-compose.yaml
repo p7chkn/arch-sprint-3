@@ -26,6 +26,8 @@ services:
       - db-telemetry
     environment:
       - POSTGRES_DSN=postgresql://${TELEMETRY_DB_USER}:${TELEMETRY_DB_PASSWORD}@db-telemetry:5432/${TELEMETRY_DB_NAME}
+      - DEVICE_TOPIC=${DEVICE_TOPIC}
+      - KAFKA_BROKER=kafka:9092
     networks:
       - app-network
     command: ["python", "main.py"]
@@ -40,6 +42,8 @@ services:
       - db-telemetry
     environment:
       - POSTGRES_DSN=postgresql://${TELEMETRY_DB_USER}:${TELEMETRY_DB_PASSWORD}@db-telemetry:5432/${TELEMETRY_DB_NAME}
+      - DEVICE_TOPIC=${DEVICE_TOPIC}
+      - KAFKA_BROKER=kafka:9092
     networks:
       - app-network
     command: ["python", "main.py", "--worker"]
@@ -90,6 +94,9 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
     ports:
       - "8000:80"
+    depends_on:
+      - device-control-api
+      - telemetry-api
     networks:
       - app-network
 
