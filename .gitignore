@@ -195,4 +195,6 @@ task-*
 
 **/.venv
 __pycache__/
-*.pyc
+**/*.pyc
+
+**/.env

@@ -2,16 +2,22 @@ import uuid
 from application.device.models.device import RegisterDeviceInput, RegisterDeviceRaw, EditDeviceInput
 from application.device.models.device import CommandInput
 from application.device.usecases.interfaces import DeviceRegisterRepoInterface, DeviceGetRepoInterface, \
-    DeviceGetAllRepoInterface, DeviceUpdateRepoInterface, DeviceDeleteRepoInterface, DeviceCommandExecuteRepoInterface
+    DeviceGetAllRepoInterface, DeviceUpdateRepoInterface, DeviceDeleteRepoInterface, DeviceCommandExecuteRepoInterface, \
+    DevicePublishInterface
 
 
 class RegisterDeviceUseCase:
-    def __init__(self, device_repo: DeviceRegisterRepoInterface):
+    def __init__(self,
+                 device_repo: DeviceRegisterRepoInterface,
+                 broker: DevicePublishInterface):
         self._device_repo = device_repo
+        self._broker = broker
 
     async def execute(self, device: RegisterDeviceInput):
         new_id = uuid.uuid4()
-        await self._device_repo.save_new_device(RegisterDeviceRaw(id=new_id, **device.model_dump()))
+        new_device = RegisterDeviceRaw(id=new_id, **device.model_dump())
+        await self._device_repo.save_new_device(new_device)
+        await self._broker.publish_device(new_device)
 
 
 class GetDevicesUseCase:

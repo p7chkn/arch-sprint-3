@@ -9,4 +9,5 @@ app = FastAPI(
 app.include_router(device_router, prefix="", tags=["devices"])
 
 def run_app():
-    uvicorn.run(app)
+    uvicorn.run(app,
+                host="0.0.0.0")

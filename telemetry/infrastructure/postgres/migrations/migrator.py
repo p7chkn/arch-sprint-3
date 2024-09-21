@@ -3,6 +3,7 @@ from sqlalchemy import create_engine, text
 
 from config import config
 
+
 def execute_sql_file(file_path):
     """Reads and executes the SQL commands from the provided file."""
     with open(file_path, 'r') as file:

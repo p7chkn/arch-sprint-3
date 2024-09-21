@@ -28,3 +28,7 @@ class DeviceDeleteRepoInterface(Protocol):
 class DeviceCommandExecuteRepoInterface(Protocol):
     async def execute_command(self, device_id: UUID, user_id: UUID, commands: list[CommandInput]):
         ...
+
+class DevicePublishInterface(Protocol):
+    async def publish_device(self, device: RegisterDeviceRaw):
+        ...

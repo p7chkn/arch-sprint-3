@@ -19,5 +19,5 @@ def get_session() -> Session:
         db.close()
 
 
-def get_device_register_repo(session: Session = Depends(get_session))-> DeviceRegisterRepoInterface:
+def get_device_repo(session: Session = Depends(get_session)):
     return DeviceRepo(session=session)

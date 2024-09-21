@@ -6,9 +6,9 @@ from uuid import UUID
 from application.device.models.device import RegisterDeviceInput, EditDeviceInput
 from application.device.usecases.devices import RegisterDeviceUseCase, GetDevicesUseCase, GetSingleDeviceUseCase, \
     UpdateDeviceUseCase, DeleteDeviceUseCase, ExecuteCommandUseCase
-from presentation.api.dependencies.device import get_device_register_use_case, get_single_get_use_case, \
-    get_devices_get_use_case, get_edit_device_use_case
-from presentation.api.dependencies.request import get_user_id
+from presentation.dependencies.device import get_device_register_use_case, get_devices_get_use_case, \
+    get_single_get_use_case, get_edit_device_use_case
+from presentation.dependencies.request import get_user_id
 from presentation.api.routers.schemas.devices import RegisterDeviceRequest, ResponseDevice
 
 router = APIRouter(
