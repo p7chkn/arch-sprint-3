@@ -1,8 +1,7 @@
 services:
 
   device-control-api:
-    build:
-      context: device-control
+    image: ghcr.io/p7chkn/device-control-service:latest
     container_name: device-control-api
     depends_on:
       - kafka
@@ -18,9 +17,7 @@ services:
       - "8000"
 
   telemetry-api:
-#    image: ghcr.io/p7chkn/telemetry-service:latest
-    build:
-      context: telemetry
+    image: ghcr.io/p7chkn/telemetry-service:latest
     container_name: telemetry-api
     depends_on:
       - db-telemetry
