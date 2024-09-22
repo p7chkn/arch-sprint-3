@@ -1,74 +1,62 @@
-# Базовая настройка
+## Задание №1
 
-## Запуск minikube
+- 1.1 [задание](tasks/1_1.md)
+- 1.2 [задание](tasks/1_2.md)
+- 1.3 [задание](tasks/1_3.md)
+- 1.4 [задание](tasks/1_4.md)
 
-[Инструкция по установке](https://minikube.sigs.k8s.io/docs/start/)
+## Задание №2
 
-```bash
-minikube start
+Задание выполнено с использованием docker-compose (наставник сказал, что можно так) и nginx в качестве API Gateway. 
+
+В качестве языка программирования используется Python.
+2 новых сервиса для MVP называются device-control и telemetry. Расположены в соответствующих папках. 
+
+### Инструкции
+Чтобы поднять проект через docker-compose: нужно убедиться, что он установлен:
+
+```shell
+docker-compose version
+```
+или 
+
+```shell
+docker compose version
 ```
 
+[Инструкция по установке docker compose](https://docs.docker.com/compose/install/)
 
-## Добавление токена авторизации GitHub
+Далее создать файл с переменными окружения, это можно сделать при помощи шаблона:
+```shell
+cp .env_example .env
+```
+При желании можно установить собственные значения.
 
-[Получение токена](https://github.com/settings/tokens/new)
+Далее нужно поднять весь docker compose:
 
-```bash
-kubectl create secret docker-registry ghcr --docker-server=https://ghcr.io --docker-username=<github_username> --docker-password=<github_token> -n default
+```shell
+docker compose up -d
+```
+или
+```shell
+docker-compose up -d
 ```
 
+После этого нужно запустить миграции в базе данных, сделать это можно так:
+```shell
+docker compose exec device-control-api sh -c './migrate_up.sh'
 
-## Установка API GW kusk
-
-[Install Kusk CLI](https://docs.kusk.io/getting-started/install-kusk-cli)
-
-```bash
-kusk cluster install
+docker compose exec telemetry-api sh -c './migrate_up.sh'
 ```
 
+После этого можно обращаться к системе через http://localhost:8000
 
-## Настройка terraform
-
-[Установите Terraform](https://yandex.cloud/ru/docs/tutorials/infrastructure-management/terraform-quickstart#install-terraform)
-
-
-Создайте файл ~/.terraformrc
-
-```hcl
-provider_installation {
-  network_mirror {
-    url = "https://terraform-mirror.yandexcloud.net/"
-    include = ["registry.terraform.io/*/*"]
-  }
-  direct {
-    exclude = ["registry.terraform.io/*/*"]
-  }
-}
+Если нужно обновить образы в репозитории, в папке сервисов есть для этого скрипт [вот](device-control/build_and_push.sh) и [вот](telemetry/build_and_push.sh).
+Нужно учесть, что для того, что бы запушить изменения в образах нужно иметь доступ, для этого нужно задать переменные окружения перед выполнением скрипта:
+```shell
+export GITHUB_USERNAME="<YOUR_GIHUB_USERNAME>"
+export GITHUB_PAT="<YOUR_GITHUB_TOKEN>"
 ```
+[Инструкция как получить токен.](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
 
-## Применяем terraform конфигурацию 
-
-```bash
-cd terraform
-terraform apply
-```
-
-## Настройка API GW
-
-```bash
-kusk deploy -i api.yaml
-```
-
-## Проверяем работоспособность
-
-```bash
-kubectl port-forward svc/kusk-gateway-envoy-fleet -n kusk-system 8080:80
-curl localhost:8080/hello
-```
-
-
-## Delete minikube
-
-```bash
-minikube delete
-```
+Так же стоит обратить внимание, если залить образы в личный профиль гитхаба, то в [docker-compose](docker-compose.yaml) нужно поменять будет пути образов. 

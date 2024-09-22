@@ -119,6 +119,11 @@ services:
       - app-network
     depends_on:
       - zookeeper
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9092" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   device-db-data:
