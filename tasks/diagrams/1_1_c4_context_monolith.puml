@@ -1,0 +1,16 @@
+@startuml
+title Context Monolith Diagram
+!include template/C4_Context.puml
+
+Person(user, "Пользователь", "Человек, который может управлять отоплением в доме")
+
+System(system, "Система управления отоплением", "Управляет отоплением дома")
+System_Ext(sensors, "Датчики температуры", "Измеряют текущую температуру")
+System_Ext(heatingDevices, "Устройства отопления", "Управляют температурой в помещении")
+
+Rel(user, system, "Просматривание данные и выполняет команды управления")
+
+Rel(system, sensors, "Получение данных о текущей температура")
+Rel(system, heatingDevices, "Управление силой отопления")
+
+@enduml

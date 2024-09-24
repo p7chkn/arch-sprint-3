@@ -1,0 +1,134 @@
+services:
+
+  device-control-api:
+    image: ghcr.io/p7chkn/device-control-service:latest
+    container_name: device-control-api
+    depends_on:
+      - kafka
+      - db-device
+    environment:
+      - POSTGRES_DSN=postgresql://${DEVICE_DB_USER}:${DEVICE_DB_PASSWORD}@db-device:5432/${DEVICE_DB_NAME}
+      - DEVICE_TOPIC=${DEVICE_TOPIC}
+      - KAFKA_BROKER=kafka:9092
+    networks:
+      - app-network
+    command: ["python", "main.py"]
+    ports:
+      - "8000"
+
+  telemetry-api:
+    image: ghcr.io/p7chkn/telemetry-service:latest
+    container_name: telemetry-api
+    depends_on:
+      - db-telemetry
+    environment:
+      - POSTGRES_DSN=postgresql://${TELEMETRY_DB_USER}:${TELEMETRY_DB_PASSWORD}@db-telemetry:5432/${TELEMETRY_DB_NAME}
+      - DEVICE_TOPIC=${DEVICE_TOPIC}
+      - KAFKA_BROKER=kafka:9092
+    networks:
+      - app-network
+    command: ["python", "main.py"]
+    ports:
+      - "8000"
+
+  telemetry-worker:
+    build:
+      context: telemetry
+    container_name: telemetry-worker
+    depends_on:
+      - db-telemetry
+    environment:
+      - POSTGRES_DSN=postgresql://${TELEMETRY_DB_USER}:${TELEMETRY_DB_PASSWORD}@db-telemetry:5432/${TELEMETRY_DB_NAME}
+      - DEVICE_TOPIC=${DEVICE_TOPIC}
+      - KAFKA_BROKER=kafka:9092
+    networks:
+      - app-network
+    command: ["python", "main.py", "--worker"]
+
+  telemetry-consumer:
+    build:
+      context: telemetry
+    container_name: telemetry-consumer
+    depends_on:
+      - db-telemetry
+      - kafka
+    environment:
+      - POSTGRES_DSN=postgresql://${TELEMETRY_DB_USER}:${TELEMETRY_DB_PASSWORD}@db-telemetry:5432/${TELEMETRY_DB_NAME}
+      - DEVICE_TOPIC=${DEVICE_TOPIC}
+      - KAFKA_BROKER=kafka:9092
+    networks:
+      - app-network
+    command: ["python", "main.py", "--consumer"]
+
+  db-device:
+    image: postgres:16.4
+    container_name: db-device
+    environment:
+      POSTGRES_USER: ${DEVICE_DB_USER}
+      POSTGRES_PASSWORD: ${DEVICE_DB_PASSWORD}
+      POSTGRES_DB: ${DEVICE_DB_NAME}
+    volumes:
+      - device-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  db-telemetry:
+    image: postgres:16.4
+    container_name: db-telemetry
+    environment:
+      POSTGRES_USER: ${TELEMETRY_DB_USER}
+      POSTGRES_PASSWORD: ${TELEMETRY_DB_PASSWORD}
+      POSTGRES_DB: ${TELEMETRY_DB_NAME}
+    volumes:
+      - telemetry-db-data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-gateway
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8000:80"
+    depends_on:
+      - device-control-api
+      - telemetry-api
+    networks:
+      - app-network
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    networks:
+      - app-network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_CREATE_TOPICS=device_topic:1:1
+    networks:
+      - app-network
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: [ "CMD", "nc", "-z", "localhost", "9092" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  device-db-data:
+  telemetry-db-data:
+
+networks:
+  app-network:
+    driver: bridge

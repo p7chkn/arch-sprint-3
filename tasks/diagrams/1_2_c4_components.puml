@@ -1,0 +1,63 @@
+@startuml
+title API Application components diagram
+
+
+
+!include template/C4_Component.puml
+!define RECTANGLE_WITH_SIZE(size) <size:size></size>
+
+
+Container(WebApp, "Web Application", "Outsource", "Интерфейс системы для пользователя")
+
+
+System_Boundary(SmartHomeSystem, "Умный дом", "Система управления умными устройствами") {
+  Container(APIApp, "API Application", "Microservice", "Обработка запросов пользователя и обработка данных устройств")
+  ContainerDb(DBTelemetry, "Telemetry DB", "PostgreSQL", "Хранит данные пользователей и данные об устройствах")
+  ContainerDb(DBUsers, "Users DB", "PostgreSQL", "Хранит данные пользователей и данные об устройствах")
+  ContainerDb(DBAuth, "Auth DB", "PostgreSQL", "Хранит данные пользователей и данные об устройствах")
+  ContainerDb(DBDevices, "Devices DB", "PostgreSQL", "Хранит данные пользователей и данные об устройствах")
+  ContainerDb(DBScenarios, "Scenarios DB", "PostgreSQL", "Хранит данные пользователей и данные об устройствах")
+  ContainerQueue(MessageBroker, "Message Broker", "Kafka", "Очередь обмена сообщениям")
+}
+
+Container_Boundary(APIApp, "API Application", "Microservice", "Обработка запросов пользователя и обработка данных устройств") {
+  Component(APIGateway, "API Gateway", "Сервис через который проксирует все запросы")
+  Component(UsersAuth, "Users Auth Service", "Сервис авторизации пользователей")
+  Component(UsersControl, "Users Control Service", "Сервис управления данными пользователя")
+  Component(DeviceControl, "Device Control Service", "Сервис управления устройствами")
+  Component(Telemetry, "Telemetry Service", "Сервис телеметрии")
+  Component(ScenarioControl, "Scenarios control", "Сервис управления сценариями")
+  Component(DeviceAdapter, "Device Adapter Service", "Сервис ретрансляции сообщений в формат устройства")
+}
+
+System_Ext(devices, "Devices", "Устройства установленные у пользователей дома")
+
+Lay_D(UsersAuth, MessageBroker)
+Lay_D(Telemetry, MessageBroker)
+Lay_L(Telemetry, Telemetry)
+Lay_D(MessageBroker, DBTelemetry)
+Lay_D(MessageBroker, DBUsers)
+Lay_D(MessageBroker, DBAuth)
+Lay_D(MessageBroker, DBDevices)
+Lay_D(MessageBroker, DBScenarios)
+Lay_L(DeviceAdapter, ScenarioControl)
+
+Rel_D(WebApp, APIGateway, "Запросы за данными", "tcp/https")
+Rel_D(APIGateway, UsersAuth, "Авторизует запрос", "tcp/https")
+Rel(APIGateway, UsersControl, "Управление данными пользователя", "tcp/https")
+Rel(APIGateway, DeviceControl, "Управление устройствами", "tcp/https")
+Rel(APIGateway, Telemetry, "Отображение телеметрии", "tcp/https")
+Rel(APIGateway, ScenarioControl, "Управление сценариями", "tcp/https")
+Rel_L(DeviceControl, DeviceAdapter, "Трансляция сообщений управления", "tcp/https")
+Rel_L(Telemetry, DeviceAdapter, "Трансляция запросов статуса устройства", "tcp/https")
+Rel_L(ScenarioControl, DeviceAdapter, "Трансляция сообщений управления", "tcp/https")
+Rel_L(DeviceAdapter, devices, "Трансляция сообщений в формате устройства", "tcp/https")
+Rel_D(UsersAuth, DBAuth, "Запрашивает/сохраняет авторизационные данные", "tcp/sql")
+Rel_D(UsersControl, DBUsers, "Запрашивает/сохраняет данные пользователя", "tcp/sql")
+Rel_D(DeviceControl, DBDevices, "Запрашивает/сохраняет данные устройств", "tcp/sql")
+Rel_D(Telemetry, DBTelemetry, "Запрашивает/сохраняет данные устройств", "tcp/sql")
+Rel_D(ScenarioControl, DBScenarios, "Запрашивает/сохраняет данные устройств", "tcp/sql")
+Rel_D(DeviceControl, MessageBroker, "Публикация данных о устройствах", "tcp/kafka")
+Rel(MessageBroker, Telemetry, "Чтение данных о устройствах", "tcp/kafka")
+Rel(MessageBroker, ScenarioControl, "Чтение данных о устройствах", "tcp/kafka")
+@enduml

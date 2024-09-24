@@ -1,0 +1,26 @@
+@startuml
+title Component Diagram
+!include template/C4_Component.puml
+top to bottom direction
+
+Person(user, "Пользователь", "Человек, который может управлять устройствами в доме")
+
+System(SmartHomeSystem, "Умный дом", "Система управления умными устройствами")
+
+Container_Boundary(SmartHomeSystem, "Система управления отоплением") {
+  Container(WebApp, "Web Application", "Outsource", "Интерфейс системы для пользователя")
+  Container(APIApp, "API Application", "Microservices system", "Обработка запросов пользователя и обработка данных устройств")
+  Container(Database, "Database", "PostgreSQL", "Хранит данные пользователей и данные об устройствах")
+  Container(MessageBroker, "Message Broker", "Kafka", "Очередь обмена сообщениям")
+}
+
+System_Ext(devices, "Devices", "Устройства установленные у пользователей дома")
+
+Rel(user, WebApp, "Управляет своим умным домом")
+Rel(WebApp,APIApp,"Запросы на получение/изменение данных")
+Rel(APIApp,Database,"Получение/изменение данных")
+Rel(APIApp,MessageBroker,"Отправка сообщений")
+Rel(MessageBroker,APIApp,"Получение сообщений")
+Rel(APIApp,devices,"Отправка команд устройству")
+Rel(devices,APIApp,"Получение данных об устройства")
+@enduml
